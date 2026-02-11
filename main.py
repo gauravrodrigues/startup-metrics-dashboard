@@ -5,10 +5,13 @@ Day 1: Initial setup with health check and basic structure
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, date
 from decimal import Decimal
+import os
 
 app = FastAPI(
     title="Startup Metrics Dashboard API",
@@ -52,7 +55,16 @@ metrics_store = {
 }
 
 # Routes
-@app.get("/", response_model=HealthResponse)
+@app.get("/", response_class=HTMLResponse)
+async def serve_dashboard():
+    """Serve the main dashboard HTML"""
+    html_path = os.path.join(os.path.dirname(__file__), "index.html")
+    if os.path.exists(html_path):
+        with open(html_path, "r") as f:
+            return f.read()
+    return "<h1>Dashboard HTML not found</h1>"
+
+@app.get("/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint"""
     return HealthResponse(
